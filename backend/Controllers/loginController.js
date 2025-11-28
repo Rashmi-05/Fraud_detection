@@ -18,11 +18,14 @@ export const signup = async (req, res) => {
     // generate random account number (like a bank)
     const accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
 
+    const balance = Math.floor(Math.random() * (100000 - 2000 + 1)) + 2000;
+
     // create user
     const user = await userModel.create({
       email,
       password: hashed,
-      accountNumber
+      accountNumber:accountNumber,
+      accountBalance:balance,
     });
 
     return res.status(201).json({
@@ -30,7 +33,8 @@ export const signup = async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        accountNumber: user.accountNumber
+        accountNumber: user.accountNumber,
+        balance: user.accountBalance,
       }
     });
   } catch (err) {

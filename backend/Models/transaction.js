@@ -32,11 +32,11 @@ export const Transaction = (sequelize) => {
       //  location
       latitude: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
       longitude: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
       },
     
       receiverTag: {

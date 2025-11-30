@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 
 const paymentMethods = [
   {
@@ -24,80 +23,97 @@ const paymentMethods = [
 const PaymentGateway = () => {
   const [selectedTab, setSelectedTab] = useState("card");
   const [step, setStep] = useState(1);
+
   const [formData, setFormData] = useState({
     amount: "",
     receiver: "",
     pin: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [balance, setBalance] = useState("");
+
+  // ---------------- FETCH BALANCE ----------------
+  useEffect(() => {
+    fetchBalance();
+  }, []);
+
+  const fetchBalance = async () => {
+    try {
+      const res = await axios.get("/balance");
+      setBalance(res.data.balance || "0");
+    } catch (err) {
+      toast.error("Failed to load balance");
+    }
+  };
+
+  // ---------------- HANDLERS ----------------
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
-
   const nextStep = () => {
     if (!formData.amount || !formData.receiver) {
-      toast.error("Please fill all required fields");
+      toast.error("Please fill all fields");
       return;
     }
     setStep(2);
   };
 
+  const prevStep = () => setStep(1);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.pin) {
-      toast.error("Please fill your PIN");
+      toast.error("Please enter your PIN");
       return;
     }
 
     setLoading(true);
     try {
-      const response = await axios.post("https://your-backend-endpoint.com/pay", {
+      await axios.post("/pay", {
         method: selectedTab,
         ...formData,
       });
 
       toast.success("Payment Successful!");
       setSuccess(true);
-    } catch (error) {
-      console.error("Payment failed:", error);
-      toast.error("Payment failed. Please try again.");
+    } catch (err) {
+      toast.error("Payment failed");
     } finally {
       setLoading(false);
     }
   };
 
-
-
-
+  // ---------------- UI ----------------
   return (
-
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
-      {/* Top Page Title */}
       <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
         AI-Based Fraud Detection & Risk Management System
       </h1>
 
-      {/* Payment Box */}
       <div className="max-w-md w-full bg-white shadow-2xl rounded-2xl p-6 flex flex-col items-center">
-        {/* Payment Details Title */}
         <h2 className="text-2xl font-semibold text-gray-700 mb-6 text-center">
           Payment Details
         </h2>
+
+        {/* Balance */}
+        <div className="mb-4 text-lg font-semibold text-green-600">
+          Available Balance: ₹{balance}
+        </div>
 
         {/* Tabs */}
         <div className="flex justify-center border-b mb-6 w-full">
           {paymentMethods.map((method) => (
             <button
               key={method.id}
-              className={`px-4 py-2 font-medium ${selectedTab === method.id
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-gray-400"
-                }`}
+              className={`px-4 py-2 font-medium cursor-pointer ${
+                selectedTab === method.id
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-400"
+              }`}
               onClick={() => setSelectedTab(method.id)}
             >
               {method.name}
@@ -119,16 +135,15 @@ const PaymentGateway = () => {
             ))}
         </div>
 
-        {/* Form */}
         {!success ? (
           <form
             onSubmit={handleSubmit}
             className="space-y-4 w-full flex flex-col items-center"
           >
-            {/* Step 1: Amount & Receiver */}
+            {/* STEP 1 */}
             {step === 1 && (
               <>
-                <div className="w-full text-center mb-2">
+                <div className="w-full">
                   <p className="text-gray-600 mb-1 font-medium">Amount</p>
                   <input
                     type="number"
@@ -137,53 +152,39 @@ const PaymentGateway = () => {
                     onChange={handleChange}
                     placeholder="Enter amount"
                     required
-                    className={`w-full p-4 border rounded-xl text-gray-800 text-lg transition-all focus:outline-none ${formData.amount
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 bg-white"
-                      }`}
+                    className="w-full p-4 border rounded-xl text-gray-800 text-lg"
                   />
-                  <span className="text-red-500 text-sm mt-1 hidden peer-invalid:block">
-                    Please fill this field
-                  </span>
                 </div>
 
-                <div className="w-full text-center mb-2">
+                <div className="w-full">
                   <p className="text-gray-600 mb-1 font-medium">
-                    Receiver Account Number
+                    Receiver Account
                   </p>
                   <input
                     type="text"
                     name="receiver"
                     value={formData.receiver}
                     onChange={handleChange}
-                    placeholder="Enter receiver account number"
+                    placeholder="Enter receiver account"
                     required
-                    className={`w-full p-4 border rounded-xl text-gray-800 text-lg transition-all focus:outline-none ${formData.receiver
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 bg-white"
-                      }`}
+                    className="w-full p-4 border rounded-xl text-gray-800 text-lg"
                   />
-                  <span className="text-red-500 text-sm mt-1 hidden peer-invalid:block">
-                    Please fill this field
-                  </span>
                 </div>
 
-                <div className="flex justify-end w-full mt-4">
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-all shadow-md"
-                  >
-                    Next
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="w-full bg-blue-500 text-white py-3 rounded-xl cursor-pointer hover:bg-blue-600 transition-all shadow-md"
+                >
+                  Next
+                </button>
               </>
             )}
 
-            {/* Step 2: PIN */}
+            {/* STEP 2 */}
             {step === 2 && (
               <>
-                <div className="w-full text-center mb-2">
+                <div className="w-full">
                   <p className="text-gray-600 mb-1 font-medium">PIN</p>
                   <input
                     type="password"
@@ -192,35 +193,42 @@ const PaymentGateway = () => {
                     onChange={handleChange}
                     placeholder="Enter PIN"
                     required
-                    className={`w-full p-4 border rounded-xl text-gray-800 text-lg transition-all focus:outline-none ${formData.pin
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-300 bg-white"
-                      }`}
+                    className="w-full p-4 border rounded-xl text-gray-800 text-lg"
                   />
-                  <span className="text-red-500 text-sm mt-1 hidden peer-invalid:block">
-                    Please fill this field
-                  </span>
                 </div>
 
-                <div className="flex justify-between w-full mt-4">
+                <div className="flex justify-between w-full">
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 transition-all shadow-md"
+                    className="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-300 cursor-pointer"
                   >
                     Back
                   </button>
+
                   <button
                     type="submit"
-                    className={`px-6 py-3 rounded-xl text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-md ${loading ? "cursor-not-allowed bg-blue-400" : ""
-                      }`}
                     disabled={loading}
+                    className={`px-6 py-3 rounded-xl text-white bg-blue-500 cursor-pointer hover:bg-blue-600 transition-all shadow-md ${
+                      loading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   >
                     {loading ? "Processing..." : "Pay Now"}
                   </button>
                 </div>
               </>
             )}
+
+            {/* Link to Dashboard */}
+            <div className="mt-4 text-center w-full">
+              <button
+                type="button"
+                onClick={() => (window.location.href = "/dashboard")}
+                className="text-blue-500 hover:underline text-sm cursor-pointer"
+              >
+                ← Go back to Dashboard
+              </button>
+            </div>
           </form>
         ) : (
           <div className="text-center p-8">
@@ -233,21 +241,7 @@ const PaymentGateway = () => {
         )}
       </div>
 
-
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-
-
+      <ToastContainer position="top-center" autoClose={2000} theme="light" />
     </div>
   );
 };

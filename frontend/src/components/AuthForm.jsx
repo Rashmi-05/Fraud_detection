@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function AuthForm({ type, toggleType }) {
+  const navigate = useNavigate();
+
   const [loginType, setLoginType] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +29,27 @@ export default function AuthForm({ type, toggleType }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (type === 'signup' && !passwordsMatch) return;
-    console.log({ loginType, email, password, confirmPassword, accountNumber });
+
+    if (type === 'signup') {
+      if (!passwordsMatch) {
+        toast.error('Passwords do not match');
+        return;
+      }
+      // Simulate signup success
+      toast.success('Signup successful! Please login.');
+      toggleType(); // Switch to login page
+      return;
+    }
+
+    if (type === 'login') {
+      if (!isLoginValid) return;
+
+      // Simulate login success
+      // In real app, call API to authenticate
+      toast.success('Login successful!');
+      localStorage.setItem('isAuthenticated', 'true');
+      navigate('/dashboard'); // Redirect to dashboard
+    }
   };
 
   return (
@@ -34,39 +57,35 @@ export default function AuthForm({ type, toggleType }) {
       <h1 className="text-3xl font-bold mb-2">{type === 'signup' ? 'Sign up' : 'Login'}</h1>
       <p className="text-gray-700 mb-6">{type === 'signup' ? 'Create your account' : 'Access your account'}</p>
 
-      {/* Login method tabs with soft dark colors */}
-{type === 'login' && (
-  <div className="flex mb-4 border-b border-gray-500">
-    <button
-      type="button"
-      onClick={() => setLoginType('email')}
-      className={`flex-1 py-2 text-center transition cursor-pointer border-b-2 ${
-        loginType === 'email'
-          ? 'border-gray-900 font-semibold text-gray-900'
-          : 'border-transparent text-gray-400 hover:text-gray-700'
-      }`}
-    >
-      Email
-    </button>
-    <button
-      type="button"
-      onClick={() => setLoginType('account')}
-      className={`flex-1 py-2 text-center transition cursor-pointer border-b-2 ${
-        loginType === 'account'
-          ? 'border-gray-900 font-semibold text-gray-900'
-          : 'border-transparent text-gray-400 hover:text-gray-700'
-      }`}
-    >
-      Account Number
-    </button>
-  </div>
-)}
+      {/* Login method tabs */}
+      {type === 'login' && (
+        <div className="flex mb-4 border-b border-gray-500">
+          <button
+            type="button"
+            onClick={() => setLoginType('email')}
+            className={`flex-1 py-2 text-center transition cursor-pointer border-b-2 ${
+              loginType === 'email'
+                ? 'border-gray-900 font-semibold text-gray-900'
+                : 'border-transparent text-gray-400 hover:text-gray-700'
+            }`}
+          >
+            Email
+          </button>
+          <button
+            type="button"
+            onClick={() => setLoginType('account')}
+            className={`flex-1 py-2 text-center transition cursor-pointer border-b-2 ${
+              loginType === 'account'
+                ? 'border-gray-900 font-semibold text-gray-900'
+                : 'border-transparent text-gray-400 hover:text-gray-700'
+            }`}
+          >
+            Account Number
+          </button>
+        </div>
+      )}
 
-
-
-
-
-      {/* Email login / signup */}
+      {/* Email login/signup */}
       {(type === 'signup' || loginType === 'email') && (
         <>
           <input
@@ -76,8 +95,6 @@ export default function AuthForm({ type, toggleType }) {
             onChange={(e) => setEmail(e.target.value)}
             className="mb-4 p-3 border border-black rounded w-full focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition"
           />
-
-          {/* Password */}
           <div className="relative mb-4">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -93,8 +110,6 @@ export default function AuthForm({ type, toggleType }) {
               {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
             </span>
           </div>
-
-          {/* Confirm Password */}
           {type === 'signup' && (
             <>
               <div className="relative mb-1">
@@ -103,12 +118,13 @@ export default function AuthForm({ type, toggleType }) {
                   placeholder="Confirm Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full p-3 border border-black rounded focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition ${confirmPassword.length > 0
+                  className={`w-full p-3 border rounded focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition ${
+                    confirmPassword.length > 0
                       ? passwordsMatch
                         ? 'border-green-500'
                         : 'border-red-500'
                       : 'border-black'
-                    }`}
+                  }`}
                 />
                 <span
                   onClick={() => setShowConfirm(!showConfirm)}
@@ -119,8 +135,9 @@ export default function AuthForm({ type, toggleType }) {
               </div>
               {confirmPassword.length > 0 && (
                 <p
-                  className={`text-sm mt-1 ${passwordsMatch ? 'text-green-500' : 'text-red-500'
-                    }`}
+                  className={`text-sm mt-1 ${
+                    passwordsMatch ? 'text-green-500' : 'text-red-500'
+                  }`}
                 >
                   {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
                 </p>
@@ -141,17 +158,22 @@ export default function AuthForm({ type, toggleType }) {
         />
       )}
 
-      {/* Submit button */}
       <button
         type="submit"
         disabled={type === 'signup' ? !isSignUpValid : !isLoginValid}
-        className={`w-full py-3 rounded text-white transition cursor-pointer ${type === 'signup' ? (!isSignUpValid ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800') : !isLoginValid ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
-          }`}
+        className={`w-full py-3 rounded text-white transition cursor-pointer ${
+          type === 'signup'
+            ? !isSignUpValid
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-black hover:bg-gray-800'
+            : !isLoginValid
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-black hover:bg-gray-800'
+        }`}
       >
         {type === 'signup' ? 'Sign up' : 'Login'}
       </button>
 
-      {/* Toggle login/signup */}
       <p className="mt-4 text-sm text-center text-gray-700">
         {type === 'signup' ? (
           <>

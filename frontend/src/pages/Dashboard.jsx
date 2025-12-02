@@ -18,9 +18,9 @@ const Dashboard = () => {
       try {
         const [txnRes, recRes, balRes] = await Promise.all([
 
-          axios.get(`https://18491e151454.ngrok-free.app/pastTxn`),
-          axios.get(`https://18491e151454.ngrok-free.app/receivers`),
-          axios.get(`https://18491e151454.ngrok-free.app/getBalance`),
+          axios.get(`https://896e2132101b.ngrok-free.app /pastTxn`),
+          axios.get(`https://896e2132101b.ngrok-free.app /receivers`),
+          axios.get(`https://896e2132101b.ngrok-free.app /getBalance`),
 
         ]);
         console.log(`transaction history data: `, txnRes.data);

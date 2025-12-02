@@ -74,11 +74,13 @@ export const login = async (req, res) => {
     );
 
     // send cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // set true in production
-      sameSite: "lax"
-    });
+   res.cookie("token", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+  maxAge: 24 * 60 * 60 * 1000
+});
 
     return res.json({
       message: "Login successful",

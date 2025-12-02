@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import sequelize from "./Models/index.js";
 import userRoutes from './Routes/userRoutes.js';
 import cookieParser from "cookie-parser";
+import cors from 'cors';
 
 
 
@@ -16,16 +17,15 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(cors({
-//   origin:[
-//     "http://localhost:5173", 
-//     "https://049d98f2fca2.ngrok-free.app",
-//       " https://87cde77f0707.ngrok-free.app"// your local vite de      // allow any ngrok tunnel
-//   ],
+app.use(cors({
+  origin:[
+    "http://localhost:5173", 
+    // "https://d3d85368ee3f.ngrok-free.app" 
+  ],
     
-//   methods: "GET,POST,PUT,DELETE",
-//   credentials:true,
-// }));
+  methods: "GET,POST,PUT,DELETE",
+  credentials:true,
+}));
 
 //Routes
 app.use('/', userRoutes);
@@ -42,6 +42,9 @@ app.get('/users', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.set("trust proxy", 1);
+
 // Start the server
 
 // const sslOptions = {

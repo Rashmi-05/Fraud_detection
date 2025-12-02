@@ -7,18 +7,31 @@ const Dashboard = () => {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  // const BASE_URL = "https://18491e151454.ngrok-free.app";
+//   const api = axios.create({
+//   baseURL: "https://18491e151454.ngrok-free.app",
+//   withCredentials: true
+// });
+
   useEffect(() => {
     const fetchAll = async () => {
       try {
         const [txnRes, recRes, balRes] = await Promise.all([
-          axios.get("/pastTxn"),
-          axios.get("/receviers"),
-          axios.get("/balance"),
-        ]);
 
+          axios.get(`https://18491e151454.ngrok-free.app/pastTxn`),
+          axios.get(`https://18491e151454.ngrok-free.app/receivers`),
+          axios.get(`https://18491e151454.ngrok-free.app/getBalance`),
+
+        ]);
+        console.log(`transaction history data: `, txnRes.data);
+        console.log(`past receivers: `, recRes.data);
+        console.log(`balance: `, balRes.data);
+
+        // correct response structure
         setTransactions(txnRes.data.transactions || []);
-        setReceivers(recRes.data.receviers || []);
+        setReceivers(recRes.data.receivers || []); 
         setBalance(balRes.data.balance || 0);
+
       } catch (err) {
         console.error("Error loading dashboard:", err);
       } finally {
@@ -29,6 +42,7 @@ const Dashboard = () => {
     fetchAll();
   }, []);
 
+  // ------------------------------ UI stays exactly same ------------------------------
   if (loading)
     return (
       <div className="flex items-center justify-center h-screen text-gray-600">
@@ -38,18 +52,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 flex flex-col items-center">
-      {/* DASHBOARD Title */}
       <h1 className="text-3xl font-bold text-gray-700 mb-6 text-center">
         DASHBOARD
       </h1>
 
-      {/* Balance */}
       <div className="w-full max-w-4xl bg-white shadow rounded-2xl p-8 mb-6 flex flex-col items-center">
         <p className="text-gray-500 text-lg">Available Balance</p>
         <h2 className="text-4xl font-bold text-green-600 mt-2">₹ {balance}</h2>
       </div>
 
-      {/* Transactions & Receivers */}
       <div className="flex flex-col lg:flex-row gap-6 mb-6 w-full max-w-4xl">
         {/* Left: Past Transactions */}
         <div className="flex-1 bg-white shadow rounded-2xl p-6 h-[450px] overflow-y-auto">
@@ -90,7 +101,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Make Transaction Button */}
       <button
         onClick={() => (window.location.href = "/payment")}
         className="w-full lg:w-1/3 bg-blue-600 text-white font-semibold py-4 rounded-2xl shadow hover:bg-blue-700 transition-all text-lg cursor-pointer"

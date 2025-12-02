@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { toast } from 'react-toastify';
 
 export default function AuthForm({ type, toggleType }) {
@@ -15,49 +16,82 @@ export default function AuthForm({ type, toggleType }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // const BASE_URL = "https://18491e151454.ngrok-free.app";
+  
+
   const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
 
   const isSignUpValid =
     email && isEmailValid(email) && password && confirmPassword && passwordsMatch;
+
   const isLoginValid =
     loginType === 'email'
       ? email && isEmailValid(email) && password
       : loginType === 'account'
-        ? accountNumber
-        : false;
+      ? accountNumber && password
+      : false;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (type === 'signup') {
-      if (!passwordsMatch) {
-        toast.error('Passwords do not match');
+    try {
+      if (type === 'signup') {
+        if (!passwordsMatch) {
+          toast.error('Passwords do not match');
+          return;
+        }
+
+        const payload = {
+          email,
+          password,
+          confirmPassword
+        };
+
+        const res = await axios.post(`https://18491e151454.ngrok-free.app/signup`, payload, { withCredentials: true });
+        toast.success("Signup successful! Please login.");
+        toggleType();
         return;
       }
-      // Simulate signup success
-      toast.success('Signup successful! Please login.');
-      toggleType(); // Switch to login page
-      return;
-    }
 
-    if (type === 'login') {
-      if (!isLoginValid) return;
+      if (type === 'login') {
+        if (!isLoginValid) return;
 
-      // Simulate login success
-      // In real app, call API to authenticate
-      toast.success('Login successful!');
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/dashboard'); // Redirect to dashboard
+        const payload =
+          loginType === "email"
+            ? {
+                loginType: "email",
+                email,
+                password
+              }
+            : {
+                loginType: "account",
+                accountNumber,
+                password
+              };
+
+        const res = await axios.post(`https://18491e151454.ngrok-free.app/login`, payload, { withCredentials: true });
+
+        toast.success("Login successful!");
+        localStorage.setItem("isAuthenticated", "true");
+
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <h1 className="text-3xl font-bold mb-2">{type === 'signup' ? 'Sign up' : 'Login'}</h1>
-      <p className="text-gray-700 mb-6">{type === 'signup' ? 'Create your account' : 'Access your account'}</p>
+      <h1 className="text-3xl font-bold mb-2">
+        {type === 'signup' ? 'Sign up' : 'Login'}
+      </h1>
+      <p className="text-gray-700 mb-6">
+        {type === 'signup' ? 'Create your account' : 'Access your account'}
+      </p>
 
-      {/* Login method tabs */}
       {type === 'login' && (
         <div className="flex mb-4 border-b border-gray-500">
           <button
@@ -85,7 +119,6 @@ export default function AuthForm({ type, toggleType }) {
         </div>
       )}
 
-      {/* Email login/signup */}
       {(type === 'signup' || loginType === 'email') && (
         <>
           <input
@@ -95,107 +128,95 @@ export default function AuthForm({ type, toggleType }) {
             onChange={(e) => setEmail(e.target.value)}
             className="mb-4 p-3 border border-black rounded w-full focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition"
           />
-          <div className="relative mb-4">
+        </>
+      )}
+
+      {type === 'login' && loginType === 'account' && (
+        <>
+          <input
+            type="text"
+            placeholder="Account Number"
+            value={accountNumber}
+            onChange={(e) => setAccountNumber(e.target.value)}
+            className="mb-4 p-3 border border-black rounded w-full focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition"
+          />
+        </>
+      )}
+
+      <div className="relative mb-4">
+        <input
+          type={showPassword ? 'text' : 'password'}
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 border border-black rounded focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition"
+        />
+        <span
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+        >
+          {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+        </span>
+      </div>
+
+      {type === 'signup' && (
+        <>
+          <div className="relative mb-1">
             <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 border border-black rounded focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition"
+              type={showConfirm ? 'text' : 'password'}
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`w-full p-3 border rounded focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition ${
+                confirmPassword.length > 0
+                  ? passwordsMatch
+                    ? 'border-green-500'
+                    : 'border-red-500'
+                  : 'border-black'
+              }`}
             />
             <span
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 flex items-center justify-center"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
             >
-              {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
+              {showConfirm ? <HiEyeOff size={20} /> : <HiEye size={20} />}
             </span>
           </div>
-          {type === 'signup' && (
-            <>
-              <div className="relative mb-1">
-                <input
-                  type={showConfirm ? 'text' : 'password'}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full p-3 border rounded focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition ${
-                    confirmPassword.length > 0
-                      ? passwordsMatch
-                        ? 'border-green-500'
-                        : 'border-red-500'
-                      : 'border-black'
-                  }`}
-                />
-                <span
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 flex items-center justify-center"
-                >
-                  {showConfirm ? <HiEyeOff size={20} /> : <HiEye size={20} />}
-                </span>
-              </div>
-              {confirmPassword.length > 0 && (
-                <p
-                  className={`text-sm mt-1 ${
-                    passwordsMatch ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
-                </p>
-              )}
-            </>
+
+          {confirmPassword.length > 0 && (
+            <p
+              className={`text-sm mt-1 ${
+                passwordsMatch ? 'text-green-500' : 'text-red-500'
+              }`}
+            >
+              {passwordsMatch ? 'Passwords match' : 'Passwords do not match'}
+            </p>
           )}
         </>
       )}
 
-      {/* Account login */}
-      {loginType === 'account' && type === 'login' && (
-        <input
-          type="text"
-          placeholder="Account Number"
-          value={accountNumber}
-          onChange={(e) => setAccountNumber(e.target.value)}
-          className="mb-4 p-3 border border-black rounded w-full focus:border-indigo-400 focus:ring-1 focus:ring-indigo-300 transition"
-        />
-      )}
-
       <button
         type="submit"
+        className="w-full bg-black text-white py-3 rounded mt-4 hover:bg-gray-800 transition"
         disabled={type === 'signup' ? !isSignUpValid : !isLoginValid}
-        className={`w-full py-3 rounded text-white transition cursor-pointer ${
-          type === 'signup'
-            ? !isSignUpValid
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-black hover:bg-gray-800'
-            : !isLoginValid
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-black hover:bg-gray-800'
-        }`}
       >
         {type === 'signup' ? 'Sign up' : 'Login'}
       </button>
 
-      <p className="mt-4 text-sm text-center text-gray-700">
+      <p className="text-center mt-4 text-gray-600">
         {type === 'signup' ? (
           <>
             Already have an account?{' '}
-            <button
-              type="button"
-              onClick={toggleType}
-              className="text-blue-600 font-medium cursor-pointer hover:underline"
-            >
-              Sign in
-            </button>
+            <span className="text-black cursor-pointer font-semibold" onClick={toggleType}>
+              Login
+            </span>
           </>
         ) : (
           <>
             Don't have an account?{' '}
-            <button
-              type="button"
-              onClick={toggleType}
-              className="text-blue-600 font-medium cursor-pointer hover:underline"
-            >
+            <span className="text-black cursor-pointer font-semibold" onClick={toggleType}>
               Sign up
-            </button>
+            </span>
           </>
         )}
       </p>

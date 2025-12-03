@@ -13,14 +13,18 @@ const Dashboard = () => {
 //   withCredentials: true
 // });
 
+const [txn, settxn] = useState("Past Transactions")
+
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [txnRes, recRes, balRes] = await Promise.all([
+       // const txnRes = await axios.get(`http://localhost:5000/pastTxn`, {withCredentials:true});
 
-          axios.get(`https://896e2132101b.ngrok-free.app /pastTxn`),
-          axios.get(`https://896e2132101b.ngrok-free.app /receivers`),
-          axios.get(`https://896e2132101b.ngrok-free.app /getBalance`),
+        const [ txnRes, recRes, balRes] = await Promise.all([
+
+         axios.get(`http://localhost:5000/pastTxn`, {withCredentials:true}),
+          axios.get(`http://localhost:5000/receivers`, {withCredentials:true}),
+          axios.get(`http://localhost:5000/getBalance`, {withCredentials:true}),
 
         ]);
         console.log(`transaction history data: `, txnRes.data);
@@ -31,6 +35,10 @@ const Dashboard = () => {
         setTransactions(txnRes.data.transactions || []);
         setReceivers(recRes.data.receivers || []); 
         setBalance(balRes.data.balance || 0);
+
+        
+
+        settxn(txnRes.data.toString())
 
       } catch (err) {
         console.error("Error loading dashboard:", err);

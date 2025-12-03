@@ -29,7 +29,7 @@ export const sendMoney = async (req, res) => {
 
     if (!amount || !receiverAccountNumber || isNaN(amount) || amount <= 0) {
       await t.rollback();
-      return res.status(400).json({ message: "Invalid data" });
+      return res.status(200).json({ message: "Invalid data" });
     }
 
     const sender = await userModel.findByPk(senderId, { transaction: t });
@@ -50,7 +50,7 @@ export const sendMoney = async (req, res) => {
 
     if (sender.accountBalance < amount) {
       await t.rollback();
-      return res.status(400).json({ message: "Insufficient balance" });
+      return res.status(200).json({ message: "Insufficient balance" });
     }
 
     // ✅ create transaction

@@ -48,7 +48,7 @@ export default function AuthForm({ type, toggleType }) {
           confirmPassword
         };
 
-        const res = await axios.post(`https://896e2132101b.ngrok-free.app/signup `, payload, { withCredentials: true });
+        const res = await axios.post(`http://localhost:5000/signup`, payload, { withCredentials: true });
         toast.success("Signup successful! Please login.");
         toggleType();
         return;
@@ -70,7 +70,7 @@ export default function AuthForm({ type, toggleType }) {
                 password
               };
 
-        const res = await axios.post(`https://896e2132101b.ngrok-free.app/login `, payload, { withCredentials: true });
+        const res = await axios.post(`http://localhost:5000/login`, payload, { withCredentials: true });
 
         toast.success("Login successful!");
         localStorage.setItem("isAuthenticated", "true");

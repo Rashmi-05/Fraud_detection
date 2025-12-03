@@ -6,6 +6,7 @@ const authMiddleware = (req, res, next) => {
   console.log("in auth");
   const token = req.cookies.token;  
   console.log("Token:", token);
+  console.log("Nusti cookie",req.headers.cookie);
 
   if (!token) {
     req.user = null;

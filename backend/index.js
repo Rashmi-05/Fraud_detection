@@ -8,6 +8,7 @@ import cors from 'cors';
 
 
 
+
 dotenv.config();
 
 
@@ -20,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin:[
     "http://localhost:5173", 
-    // "https://d3d85368ee3f.ngrok-free.app" 
+     "https://896e2132101b.ngrok-free.app" 
   ],
     
   methods: "GET,POST,PUT,DELETE",
@@ -43,7 +44,7 @@ app.get('/users', async (req, res) => {
   }
 });
 
-app.set("trust proxy", 1);
+//app.set("trust proxy", 1);
 
 // Start the server
 

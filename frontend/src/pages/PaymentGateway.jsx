@@ -42,7 +42,7 @@ const PaymentGateway = () => {
 
   const fetchBalance = async () => {
     try {
-      const res = await axios.get("/balance");
+      const res = await axios.get("http://localhost:5000/getBalance", {withCredentials:true});
       setBalance(res.data.balance || "0");
     } catch (err) {
       toast.error("Failed to load balance");
@@ -73,15 +73,19 @@ const PaymentGateway = () => {
 
     setLoading(true);
     try {
-      await axios.post("/pay", {
-        method: selectedTab,
-        ...formData,
-      });
+      const res = await axios.post("http://localhost:5000/txn", {
+         amount: formData.amount,
+  receiverAccountNumber: formData.receiver,  // ✅ correct key
+  pin: formData.pin
+      }, {withCredentials: true});
 
+        console.log(res.data.message)
       toast.success("Payment Successful!");
       setSuccess(true);
+      fetchBalance(); 
     } catch (err) {
       toast.error("Payment failed");
+      console.log(err.message)
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,7 @@ export const getPastTransactions = async (req, res) => {
       order: [["timestamp", "DESC"]],
       attributes: ["id", "amount", "timestamp", "receiverTag"]
     });
-
+    console.log("transaction",txns)
     return res.json({ transactions: txns });
 
   } catch (error) {

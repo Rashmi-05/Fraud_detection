@@ -1,6 +1,6 @@
 import { userModel, txnModel } from "../db.js";
 import sequelize from "../Models/index.js";
-
+import computeRisk from "../Utils/computeRisk.js"
 
 
 export async function updateUserMetrics(userId, amount, transaction) {
@@ -75,7 +75,17 @@ export const sendMoney = async (req, res) => {
 
 console.log(updatedReceiver.accountBalance);  // ✅ updated
 
+ const risk = await computeRisk();
+ const yellowthreshold = 0.3 //placeholder value
+ const redthreshold = 0.75 //placeholder value
 
+    if (risk > redthreshold) {
+        console.log("⚠️ High risk — rolling back");
+        await t.rollback();
+        return res.status(200).json({ message: "Transaction Blocked Due to High Risk" });
+    }
+    
+    console.log("Risk score is: ", risk)
     await t.commit();   // ✅ everything ok
 
     // ✅ fetch fresh sender balance

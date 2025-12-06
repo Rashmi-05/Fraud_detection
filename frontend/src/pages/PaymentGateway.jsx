@@ -80,11 +80,14 @@ const PaymentGateway = () => {
       }, {withCredentials: true});
 
         console.log(res.data.message)
+        if(res.data.message==="Transaction Blocked Due to High Risk"){
+          throw new Error("High Risk Transaction Blocked");
+        }
       toast.success("Payment Successful!");
       setSuccess(true);
       fetchBalance(); 
     } catch (err) {
-      toast.error("Payment failed");
+      toast.error(err.message);
       console.log(err.message)
     } finally {
       setLoading(false);

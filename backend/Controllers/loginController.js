@@ -4,7 +4,7 @@ import { userModel } from "../db.js";
 
 export const signup = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password , lat, lon} = req.body;
 
     // check duplicate
     const existing = await userModel.findOne({ where: { email } });
@@ -15,8 +15,15 @@ export const signup = async (req, res) => {
     // hash password
     const hashed = await bcrypt.hash(password, 10);
 
+    
+
     // generate random account number (like a bank)
     const accountNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
+    const pin = Math.floor(1000 + Math.random() * 9000).toString(); // 1000–9999
+    console.log(pin);
+
+    const hashedPin = await bcrypt.hash(pin, 10)
 
     const balance = Math.floor(Math.random() * (100000 - 2000 + 1)) + 2000;
 
@@ -26,6 +33,9 @@ export const signup = async (req, res) => {
       password: hashed,
       accountNumber:accountNumber,
       accountBalance:balance,
+      centroidLat: lat,
+      centroidLng: lon,
+      pin: hashedPin,
     });
 
     return res.status(201).json({

@@ -23,16 +23,38 @@ export const getPastReceivers = async (req, res) => {
   try {
     const userId = req.userId;
 
+    const user = await userModel.findByPk(userId);
+    const myAccount = user.accountNumber;
+
     const txns = await txnModel.findAll({
       where: { userId },
       attributes: ["receiverTag"],
       group: ["receiverTag"]
     });
 
+     // YOU received money → get sender userIds
+    const received = await txnModel.findAll({
+      where: { receiverTag: myAccount },
+      attributes: ["userId"],
+      group: ["userId"]
+    });
+
+    // find sender account numbers
+    const senderUsers = await userModel.findAll({
+      where: {
+        id: received.map(x => x.userId)
+      },
+      attributes: ["accountNumber"]
+    });
+
     // extract account numbers
     const receivers = txns.map(t => t.receiverTag).filter(Boolean);
 
-    return res.json({ receivers });
+    const receivedList = senderUsers.map(r => r.User.accountNumber);
+
+    const interactedUsers = [...new Set([...receivers, ...receivedList])];
+
+    return res.json({ interactedUsers });
 
   } catch (error) {
     console.error("Get receivers error:", error);

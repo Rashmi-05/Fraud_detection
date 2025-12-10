@@ -43,6 +43,11 @@ export const Transaction = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+
+      pinFailures: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
     },
 
     { tableName: "Transaction", timestamps: false }

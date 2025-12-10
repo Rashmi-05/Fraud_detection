@@ -43,17 +43,28 @@ export const User = (sequelize) => {
       },
 
       centroidLat: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.DOUBLE,
         defaultValue: 0,
       },
 
       centroidLng: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.DOUBLE,
         defaultValue: 0,
       },
 
+      sumDeviation: {
+        type: DataTypes.DOUBLE,
+        defaultValue: 0,
+      },
+
+      pin: {
+        type: DataTypes.STRING,
+        defaultValue: 0,
+      },
+
+
       meanDeviation: {
-        type: DataTypes.FLOAT,
+        type: DataTypes.DOUBLE,
         defaultValue: 0,
       },
 
@@ -66,6 +77,7 @@ export const User = (sequelize) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       }
+    
     },
 
     { tableName: "User", timestamps: false,validate: {} }

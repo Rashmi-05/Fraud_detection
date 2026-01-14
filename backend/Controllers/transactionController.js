@@ -188,6 +188,17 @@ console.log(updatedReceiver.accountBalance);  // ✅ updated
     }
     
     console.log("Risk score is: ", risk)
+ const risk = await computeRisk();
+ const yellowthreshold = 0.3 //placeholder value
+ const redthreshold = 0.75 //placeholder value
+
+    if (risk > redthreshold) {
+        console.log("⚠️ High risk — rolling back");
+        await t.rollback();
+        return res.status(200).json({ message: "Transaction Blocked Due to High Risk" });
+    }
+    
+    console.log("Risk score is: ", risk)
     await t.commit();   // ✅ everything ok
 
     // ✅ fetch fresh sender balance

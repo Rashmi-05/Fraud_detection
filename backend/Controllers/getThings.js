@@ -23,44 +23,71 @@ export const getPastReceivers = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const user = await userModel.findByPk(userId);
+    const user = await userModel.findByPk(userId, {
+      attributes: ["accountNumber"],
+      raw: true
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const myAccount = user.accountNumber;
 
-    const txns = await txnModel.findAll({
+    // 🔹 Accounts I sent money to
+    const sentTxns = await txnModel.findAll({
       where: { userId },
       attributes: ["receiverTag"],
-      group: ["receiverTag"]
+      group: ["receiverTag"],
+      raw: true
     });
 
-     // YOU received money → get sender userIds
-    const received = await txnModel.findAll({
+    const sentAccounts = sentTxns
+      .map(t => t.receiverTag)
+      .filter(Boolean);
+
+    // 🔹 Users who sent money to me
+    const receivedTxns = await txnModel.findAll({
       where: { receiverTag: myAccount },
       attributes: ["userId"],
-      group: ["userId"]
+      group: ["userId"],
+      raw: true
     });
 
-    // find sender account numbers
+    const senderUserIds = receivedTxns.map(t => t.userId);
+
     const senderUsers = await userModel.findAll({
-      where: {
-        id: received.map(x => x.userId)
-      },
-      attributes: ["accountNumber"]
+      where: { id: senderUserIds },
+      attributes: ["accountNumber"],
+      raw: true
     });
 
-    // extract account numbers
-    const receivers = txns.map(t => t.receiverTag).filter(Boolean);
+    const receivedAccounts = senderUsers.map(u => u.accountNumber);
 
-    const receivedList = senderUsers.map(r => r.User.accountNumber);
+    // 🔹 Merge + remove duplicates + remove self
+    const interactedAccounts = [
+      ...new Set([...sentAccounts, ...receivedAccounts])
+    ].filter(acc => acc !== myAccount);
 
-    const interactedUsers = [...new Set([...receivers, ...receivedList])];
+    // 4️⃣ Convert accountNumbers → usernames (userTag)
+    const interactedUsers = await userModel.findAll({
+      where: { accountNumber: interactedAccounts },
+      attributes: ["email"],
+      raw: true
+    });
 
-    return res.json({ interactedUsers });
+    const usernames = interactedUsers.map(u => u.email);
+
+    console.log("interacted users", usernames)
+
+    return res.json({ interactedUsers: usernames });
 
   } catch (error) {
     console.error("Get receivers error:", error);
     res.status(500).json({ message: "Failed to fetch receivers" });
   }
 };
+
 
 export const getBalance = async (req, res) => {
   try {

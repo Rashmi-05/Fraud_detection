@@ -33,7 +33,7 @@ const [txn, settxn] = useState("Past Transactions")
 
         // correct response structure
         setTransactions(txnRes.data.transactions || []);
-        setReceivers(recRes.data.receivers || []); 
+        setReceivers(recRes.data.interactedUsers || []); 
         setBalance(balRes.data.balance || 0);
 
         

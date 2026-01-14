@@ -181,31 +181,33 @@ console.log(updatedReceiver.accountBalance);  // ✅ updated
  const yellowthreshold = 0.3 //placeholder value
  const redthreshold = 0.75 //placeholder value
 
-    if (risk > redthreshold) {
-        console.log("⚠️ High risk — rolling back");
-        await t.rollback();
-        return res.status(200).json({ message: "Transaction Blocked Due to High Risk" });
-    }
-    
-    console.log("Risk score is: ", risk)
- const risk = await computeRisk();
- const yellowthreshold = 0.3 //placeholder value
- const redthreshold = 0.75 //placeholder value
+ let txnMessage = "Transaction Successful!"
 
     if (risk > redthreshold) {
         console.log("⚠️ High risk — rolling back");
         await t.rollback();
         return res.status(200).json({ message: "Transaction Blocked Due to High Risk" });
+    }else{
+      if(risk>yellowthreshold){
+       console.log("⚠️ Warning!! — Please be careful!");
+        // await t.rollback();
+        txnMessage = "Warning Due to medium Risk";
+        // return res.status(200).json({ message: "Warning Due to medium Risk" });
+      }
+
     }
+
     
-    console.log("Risk score is: ", risk)
+    
+    console.log("Risk score is: ", risk)  
+
     await t.commit();   // ✅ everything ok
 
     // ✅ fetch fresh sender balance
     const updatedSender = await userModel.findByPk(senderId);
 
     return res.json({
-      message: "Transaction successful",
+      message: txnMessage,
       transactionId: newTxn.id,
       newBalance: updatedSender.accountBalance,
       pinFailures    // optional: visible response
